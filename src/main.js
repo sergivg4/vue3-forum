@@ -1,28 +1,22 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import PageHome from '@/components/pageHome'
-import PageThreadShow from '@/components/PageThreadShow'
-import { createRouter, createWebHistory } from 'vue-router'
-
-const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: PageHome
-  },
-  {
-    path: '/thread/:id',
-    name: 'ThreadShow',
-    component: PageThreadShow,
-    props: true
-  }
-]
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes 
-})
+import router from '@/router'
+import store from '@/store'
 
 const forumApp = createApp(App)
 forumApp.use(router)
+forumApp.use(store)
+
+const requireComponent = require.context('./components', true, /App[A-Z]\w+\.(vue|js)$/)
+requireComponent.keys().forEach(function (fileName) {
+    let baseComponentConfig = requireComponent(fileName)
+    baseComponentConfig = baseComponentConfig.default || baseComponentConfig
+    const baseComponentName = baseComponentConfig.name || (
+        fileName 
+            .replace(/^.+\//, '')
+            .replace(/\.\w+$/, '')
+    )
+    forumApp.component(baseComponentName, baseComponentConfig)
+})
+
 forumApp.mount('#app')
